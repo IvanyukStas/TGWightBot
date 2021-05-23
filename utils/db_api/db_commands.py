@@ -1,3 +1,5 @@
+from aiogram import types
+
 from utils.db_api.models import User, Weight
 from datetime import datetime
 
@@ -15,22 +17,36 @@ async def create_new_user(user_name, user_tg_id):
     print('Кончаю')
 
 async def create_user_weight(user_weight, user_tg_id):
-    print('Начинаю')
+    print('Начинаю запись веса')
     user = await Weight.create(user_weight=user_weight, users_id=user_tg_id)
-    print('Кончаю')
+    print('Вес записан')
+
+async def check_user_weight_today(user_tg_id):
+    user_weight = await Weight.query.where(Weight.users_id == user_tg_id).gino.all()
+    date_now = datetime.utcnow()
+    for u in user_weight:
+        if date_now.day == u.date_of_update.day:
+            print('check_user_weight_today --- True')
+            return True
+    print('check_user_weight_today --- False')
+    return False
 
 
-async def update_user_weight(user_tg_id, user_message):
-    #user = await Weight.select('user_weight').where(User.user_tg_id == user_tg_id).gino.scalar()
+async def update_user_weight(user_message, user_tg_id):
     user = await Weight.query.where(Weight.users_id == user_tg_id).gino.all()
     for u in user:
-        delta = user[0].date_of_update - datetime.utcnow()
-        if delta.days < 0:
+        print('проверяю дату создания')
+        delta =  datetime.utcnow() - u.date_of_update
+        print(delta,'------', u.date_of_update)
+        if delta.days == 0:
             await u.update(user_weight=user_message).apply()
             break
-        delta = u.date_of_update - datetime.utcnow()
-        print(delta.days)
-        if int(delta.days) < 0:
-            print(u.date_of_update)
-            await u.update(user_weight=user_message).apply()
-            break
+
+async def check_user_in_database(user_tg_id):
+    user = await User.query.where(User.user_tg_id == user_tg_id).gino.first()
+    if user:
+        print('юзер есть')
+        return True
+    else:
+        print('юзера нет')
+        return False

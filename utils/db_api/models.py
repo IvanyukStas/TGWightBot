@@ -1,4 +1,4 @@
-from sqlalchemy import sql, Sequence, Column, DateTime
+from sqlalchemy import sql, Sequence, DateTime
 from datetime import datetime
 
 from utils.db_api.database import db
@@ -10,7 +10,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, Sequence('user_id_seq'), primary_key=True)
     user_name = db.Column(db.String(50))
-    user_tg_id = db.Column(db.Integer)
+    user_tg_id = db.Column(db.Integer, unique=True, index=True)
     date_of_create = db.Column(DateTime, default=datetime.utcnow)
 
 
@@ -19,7 +19,6 @@ class User(db.Model):
         return f'''
         id: {self.id}
         User: {self.user_name}
-        Вес: {self.user_weight}
         '''
 
 
