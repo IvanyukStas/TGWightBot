@@ -1,3 +1,5 @@
+from functools import reduce
+
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
@@ -13,12 +15,12 @@ from utils.db_api.db_commands import create_new_user, update_user_weight, check_
 async def average_weight_7(message: types.Message):
     await message.answer(f'Средний вес за 7 дней')
     data = await wieght_data(message.from_user.id)
-    data = {u.date_of_update.date():u.user_weight for u in data}
-    a = [i for i in data.keys()]
-    a = sorted(a, reverse=True)[:7]
-    print(a)
+    data = {u.date_of_update.date(): u.user_weight for u in data}
+    sorted_data = sorted(data.items(), reverse=True)[:7]
+    sum_data = reduce(lambda x, y: int(x[1]) + int(y[1]), sorted_data)
+    print(sum_data)
     print(data)
-
+    print(sorted_data)
 
 
 @dp.message_handler(commands=['28'], commands_prefix='/', state=States.user)
