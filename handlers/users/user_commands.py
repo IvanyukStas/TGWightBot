@@ -14,29 +14,34 @@ from utils.db_api.db_commands import create_new_user, update_user_weight, check_
 
 
 #@dp.message_handler(commands=['7'], commands_prefix='/', state=States.user)
-@dp.callback_query_handler(lambda c: c.data == "average7", state=States.user)
+@dp.callback_query_handler(text_contains= "average7", state=States.user)
 async def average_weight_7(call: CallbackQuery):
     data = await wieght_data(call.from_user.id)
     data = {u.date_of_update.date(): u.user_weight for u in data}
     sorted_data = sorted(data.items(), reverse=True)[:7]
-    sum_data = sum(int(i[1]) for i in sorted_data)
-    if len(data) > 6:
-        await call.answer(f'Ваш средний вес за 7 дней - {sum_data}')
+    sum_data = sum(int(i[1]) for i in sorted_data)//7
+    await call.answer(cache_time=2)
+    if len(data) < 7:
+        await call.message.answer(f'Ваш средний вес за последние {len(data)} дней - {sum_data}')
+        await call.message.edit_reply_markup()
     else:
-        await call.answer(f'Ваш средний вес за последние {len(data)} дней - {sum_data}')
-        await call.from_user.id
+        await call.message.answer(f'Ваш средний вес за 7 дней - {sum_data}')
+        await call.message.edit_reply_markup()
 
-@dp.message_handler(commands=['28'], commands_prefix='/', state=States.user)
-async def average_weight_7(message: types.Message):
-    data = await wieght_data(message.from_user.id)
+
+@dp.callback_query_handler(text_contains= "average28", state=States.user)
+async def average_weight_28(call: CallbackQuery):
+    data = await wieght_data(call.from_user.id)
     data = {u.date_of_update.date(): u.user_weight for u in data}
     sorted_data = sorted(data.items(), reverse=True)[:28]
-    sum_data = sum(int(i[1]) for i in sorted_data)
-    if len(data) > 27:
-        await message.answer(f'Ваш средний вес за 28 дней - {sum_data}')
+    sum_data = sum(int(i[1]) for i in sorted_data) // 28
+    await call.answer(cache_time=2)
+    if len(data) < 28:
+        await call.message.answer(f'Ваш средний вес за последние {len(data)} дней - {sum_data} кг!')
+        await call.message.edit_reply_markup()
     else:
-        await message.answer(f'Ваш средний вес за последние {len(data)} дней - {sum_data}')
-
+        await call.message.answer(f'Ваш средний вес за 7 дней - {sum_data}')
+        await call.message.edit_reply_markup()
 
 @dp.message_handler(state=None)
 async def check_and_write(message: types.Message):
@@ -64,13 +69,10 @@ async def bot_echo(message: types.Message):
     else:
         if not await check_user_weight_today(message.from_user.id):
             await create_user_weight(message.text, message.from_user.id)
-            await message.answer(f'Мы хаписали ваш вес - {message.text}\n'
-                                 f'Чтобы узнать средний вес за 7 дней нажмите /7\n'
-                                 f'За 28 дней /28')
+            await message.answer(f'Мы хаписали ваш вес - {message.text}', reply_markup=average_weight_keyboard)
         else:
             await update_user_weight(message.text, message.from_user.id)
             await message.answer(f'Мы изменили ваш предыдущий вес - {message.text}\n'
-                                 f'Чтобы узнать средний вес за 7 дней нажмите /7\n'
-                                 f'За 28 дней /28', reply_markup=average_weight_keyboard)
+                                 , reply_markup=average_weight_keyboard)
 
 
