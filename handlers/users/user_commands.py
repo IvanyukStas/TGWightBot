@@ -14,7 +14,7 @@ from utils.db_api.db_commands import create_new_user, update_user_weight, check_
 
 
 #@dp.message_handler(commands=['7'], commands_prefix='/', state=States.user)
-@dp.callback_query_handler(lambda c: c.data == "average7")
+@dp.callback_query_handler(lambda c: c.data == "average7", state=States.user)
 async def average_weight_7(call: CallbackQuery):
     data = await wieght_data(call.from_user.id)
     data = {u.date_of_update.date(): u.user_weight for u in data}
